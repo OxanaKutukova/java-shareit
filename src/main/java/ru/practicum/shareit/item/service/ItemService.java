@@ -17,4 +17,5 @@ public interface ItemService {
     void deleteItem(Long itemId);
 
     List<ItemDto> searchItemsByNameByDirector(String text);
+
 }
