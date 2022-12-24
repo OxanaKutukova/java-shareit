@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,55 +20,58 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public List<UserDto> getAllUsers() {
-        return userRepository.getAllUsers().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+    public List<UserDto> getAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public UserDto getUserById(Long userId) {
-        final UserDto resUser = getUserByIdWithCheckNull(userId);
-        return resUser;
+    public UserDto getById(Long userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        return UserMapper.toUserDto(user);
     }
 
     @Override
-    public UserDto createUser(UserDto userDto) {
+    public UserDto create(UserDto userDto) {
         validateEmail(userDto);
-        return UserMapper.toUserDto(userRepository.createUser(UserMapper.toUser(userDto)));
+
+        return UserMapper.toUserDto(userRepository.create(UserMapper.toUser(userDto)));
     }
 
     @Override
-    public UserDto updateUser(Long userId, UserDto userDto) {
-        final UserDto uUser = getUserByIdWithCheckNull(userId);
+    public UserDto update(Long userId, UserDto userDto) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
         if (userDto.getName() != null) {
-            uUser.setName(userDto.getName());
+            user.setName(userDto.getName());
         }
         if (userDto.getEmail() != null) {
             validateEmail(userDto);
-            uUser.setEmail(userDto.getEmail());
+            user.setEmail(userDto.getEmail());
         }
-        return UserMapper.toUserDto(userRepository.updateUser(userId, UserMapper.toUser(uUser)));
+
+        return UserMapper.toUserDto(userRepository.update(userId, user));
     }
 
     @Override
-    public void deleteUser(Long userId) {
-        final UserDto user = getUserByIdWithCheckNull(userId);
-        userRepository.deleteUser(userId);
+    public void delete(Long userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        userRepository.delete(userId);
     }
 
-    private UserDto getUserByIdWithCheckNull(Long userId) {
-        if (userId == null) {
-            throw new ValidationException("Идентификатор пользователя не может быть равен null");
-        }
-        final UserDto resUser = UserMapper.toUserDto(userRepository.getUserById(userId));
-        if (resUser == null) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
-        return resUser;
-    }
 
     public void validateEmail(UserDto userDto) {
-        if (userRepository.getAllUsers().stream().anyMatch(userO -> userO.getEmail().equals(userDto.getEmail()))) {
-            throw new ValidationException("Пользователь с email = " + userDto.getEmail() +  "уже есть в базе");
+        if (userRepository.findAll()
+                .stream()
+                .anyMatch(userO -> userO.getEmail().equals(userDto.getEmail()))) {
+            throw new ConflictException("Пользователь с email = " + userDto.getEmail() +  "уже есть в базе");
         }
     }
 }

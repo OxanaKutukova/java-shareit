@@ -11,30 +11,33 @@ public class UserRepositoryImpl implements UserRepository {
     private Long generateUserId = 0L;
 
     @Override
-    public User getUserById(Long userId) {
-        return users.get(userId);
+    public Optional<User> findById(Long userId) {
+
+        return Optional.ofNullable(users.get(userId));
     }
 
     @Override
-    public Collection<User> getAllUsers() {
-        return users.values();
+    public List<User> findAll() {
+        return new ArrayList<User>(users.values());
     }
 
     @Override
-    public User createUser(User user) {
+    public User create(User user) {
         user.setId(++generateUserId);
         users.put(user.getId(), user);
+
         return user;
     }
 
     @Override
-    public User updateUser(Long userId, User user) {
+    public User update(Long userId, User user) {
         users.put(userId, user);
+
         return user;
     }
 
     @Override
-    public void deleteUser(Long userId) {
+    public void delete(Long userId) {
         users.remove(userId);
     }
 

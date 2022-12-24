@@ -3,13 +3,10 @@ package ru.practicum.shareit.item.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -24,92 +21,79 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
 
     @Override
-    public List<ItemDto> getAllItemsByUserId(Long userId) {
-        UserDto  userDto = getUserByIdWithCheckNull(userId);
-        return itemRepository.getAllItems()
+    public List<ItemDto> getByOwnerId(Long userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        return itemRepository.findByOwnerId(userId)
                 .stream()
-                .filter(item -> item.getOwner().getId().equals(userId))
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemDto getItemById(Long itemId) {
-        final ItemDto resItemDto = getItemByIdWithCheckNull(itemId);
-        return resItemDto;
+    public ItemDto getById(Long itemId) {
+        final Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+
+        return ItemMapper.toItemDto(item);
     }
 
     @Override
-    public ItemDto createItem(Long userId, ItemDto itemDto) {
+    public ItemDto create(Long userId, ItemDto itemDto) {
 
         //Проверим пользователя
-        UserDto  userDto = getUserByIdWithCheckNull(userId);
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
         Item item = ItemMapper.toItem(itemDto);
-        item.setOwner(UserMapper.toUser(userDto));
-        return ItemMapper.toItemDto(itemRepository.createItem(item));
+        item.setOwner(user);
+        item = itemRepository.create(item);
+        return ItemMapper.toItemDto(item);
     }
 
     @Override
-    public ItemDto updateItem(Long userId, Long itemId, ItemDto itemDto) {
+    public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
+
         //Проверим пользователя
-        final UserDto userDto = getUserByIdWithCheckNull(userId);
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
         //Проверим вещь
-        final ItemDto uItemDto = getItemByIdWithCheckNull(itemId);
-        //Проверим пользователя вещи
-        if (!uItemDto.getOwnerId().equals(userId)) {
+        final Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+
+        //Проверим владельца вещи
+        if (!item.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Вещь с id=" + itemId + " может изменять только владелец");
         }
         if (itemDto.getName() != null) {
-            uItemDto.setName(itemDto.getName());
+            item.setName(itemDto.getName());
         }
         if (itemDto.getDescription() != null) {
-            uItemDto.setDescription(itemDto.getDescription());
+            item.setDescription(itemDto.getDescription());
         }
         if (itemDto.getAvailable() != null) {
-            uItemDto.setAvailable(itemDto.getAvailable());
+            item.setAvailable(itemDto.getAvailable());
         }
-        if (itemDto.getRequestId() != null) {
-            uItemDto.setRequestId(itemDto.getRequestId());
-        }
-        final Item uItem = ItemMapper.toItem(uItemDto);
-        uItem.setOwner(UserMapper.toUser(userDto));
-        return ItemMapper.toItemDto(itemRepository.updateItem(itemId, uItem));
+        item.setOwner(user);
 
+        return ItemMapper.toItemDto(itemRepository.update(itemId, item));
     }
 
     @Override
-    public void deleteItem(Long itemId) {
-        final ItemDto uItemDto = getItemByIdWithCheckNull(itemId);
-        itemRepository.deleteItem(itemId);
+    public void delete(Long itemId) {
+        final Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+        itemRepository.delete(itemId);
     }
 
     @Override
-    public List<ItemDto> searchItemsByNameByDirector(String text) {
-        return itemRepository.searchItemsByNameByDirector(text)
+    public List<ItemDto> findByNameByDirector(String text) {
+        return itemRepository.findByNameByDirector(text)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
-    private ItemDto getItemByIdWithCheckNull(Long itemId) {
-        if (itemId == null) {
-            throw new ValidationException("Идентификатор вещи не может быть равен null");
-        }
-        final ItemDto resItem = ItemMapper.toItemDto(itemRepository.getItemById(itemId));
-        if (resItem == null) {
-            throw new NotFoundException("Вещь с id=" + itemId + " не найден");
-        }
-        return resItem;
-    }
-
-    private UserDto getUserByIdWithCheckNull(Long userId) {
-        if (userId == null) {
-            throw new ValidationException("Идентификатор пользователя не может быть равен null");
-        }
-        final User resUser = userRepository.getUserById(userId);
-        if (resUser == null) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
-        return UserMapper.toUserDto(resUser);
-    }
 }

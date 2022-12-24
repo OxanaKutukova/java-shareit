@@ -12,51 +12,61 @@ public class ItemRepositoryImpl implements ItemRepository {
     private final Map<Long, Item> items = new HashMap<>();
     private Long generateItemId = 0L;
 
+
     @Override
-    public Item createItem(Item item) {
+    public List<Item> findAll() {
+        return new ArrayList<Item>(items.values());
+    }
+
+    @Override
+    public Optional<Item> findById(Long itemId) {
+
+        return Optional.ofNullable(items.get(itemId));
+    }
+
+    @Override
+    public Item create(Item item) {
         item.setId(++generateItemId);
         items.put(item.getId(), item);
         return item;
     }
 
     @Override
-    public Collection<Item> getAllItems() {
-        return items.values();
-    }
-
-    @Override
-    public Item updateItem(Long itemId, Item item) {
+    public Item update(Long itemId, Item item) {
         items.put(itemId, item);
+
         return item;
     }
 
     @Override
-    public void deleteItem(Long itemId) {
-
+    public void delete(Long itemId) {
         items.remove(itemId);
     }
 
     @Override
-    public List<Item> searchItemsByNameByDirector(String text) {
+    public List<Item> findByNameByDirector(String text) {
         final String searchText = text.toLowerCase();
 
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-
         Predicate<Item> inName = item -> item.getName().toLowerCase().contains(searchText);
         Predicate<Item> inDesc = item -> item.getDescription().toLowerCase().contains(searchText);
 
-        return getAllItems()
+        return findAll()
                 .stream()
                 .filter(inName.or(inDesc))
                 .filter(Item::getAvailable)
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Item getItemById(Long itemId) {
 
-        return items.get(itemId);
+
+    @Override
+    public List<Item> findByOwnerId(Long userId) {
+        return   findAll()
+                .stream()
+                .filter(item -> item.getOwner().getId().equals(userId))
+                .collect(Collectors.toList());
     }
 }

@@ -3,20 +3,24 @@ package ru.practicum.shareit.item.repository;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public interface ItemRepository {
-    Item createItem(Item item);
 
-    Collection<Item> getAllItems();
 
-    Item updateItem(Long itemId, Item item);
+    List<Item> findAll();
 
-    void deleteItem(Long itemId);
+    Optional<Item> findById(Long itemId);
 
-    List<Item> searchItemsByNameByDirector(String text);
+    Item create(Item item);
 
-    Item getItemById(Long itemId);
+    Item update(Long itemId, Item item);
+
+    void delete(Long itemId);
+
+    List<Item> findByNameByDirector(String text);
+
+    List<Item> findByOwnerId(Long userId);
 }
