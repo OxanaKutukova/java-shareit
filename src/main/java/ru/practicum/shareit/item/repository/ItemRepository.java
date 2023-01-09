@@ -1,26 +1,20 @@
 package ru.practicum.shareit.item.repository;
 
-import org.springframework.stereotype.Component;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
-
 import java.util.List;
-import java.util.Optional;
-
-@Component
-public interface ItemRepository {
 
 
-    List<Item> findAll();
 
-    Optional<Item> findById(Long itemId);
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    Item create(Item item);
+    @Query("select i from Item i " +
+            "where upper(i.name) like upper(concat('%', ?1, '%')) " +
+            " or upper(i.description) like upper(concat('%', ?1, '%'))")
 
-    Item update(Long itemId, Item item);
-
-    void delete(Long itemId);
-
-    List<Item> findByNameByDirector(String text);
+    List<Item> search(String text);
 
     List<Item> findByOwnerId(Long userId);
+
 }

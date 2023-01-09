@@ -3,8 +3,8 @@ package ru.practicum.shareit.user.service;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -14,10 +14,17 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private final UserRepository userRepository;
+
+    private User getUserById(Long userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        return user;
+    }
 
     @Override
     public List<UserDto> getAll() {
@@ -29,49 +36,41 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getById(Long userId) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        final User user = getUserById(userId);
 
         return UserMapper.toUserDto(user);
     }
 
+    @Transactional
     @Override
     public UserDto create(UserDto userDto) {
-        validateEmail(userDto);
+        final User user = UserMapper.toUser(userDto);
+        final User userS = userRepository.save(user);
 
-        return UserMapper.toUserDto(userRepository.create(UserMapper.toUser(userDto)));
+        return UserMapper.toUserDto(userS);
     }
 
+    @Transactional
     @Override
     public UserDto update(Long userId, UserDto userDto) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        if (userDto.getName() != null) {
-            user.setName(userDto.getName());
+        final User user = UserMapper.toUser(userDto);
+        final User userU = getUserById(userId);
+        if (user.getName() != null) {
+            userU.setName(user.getName());
         }
-        if (userDto.getEmail() != null) {
-            validateEmail(userDto);
-            user.setEmail(userDto.getEmail());
+        if (user.getEmail() != null) {
+            userU.setEmail(user.getEmail());
         }
+        userRepository.save(userU);
 
-        return UserMapper.toUserDto(userRepository.update(userId, user));
+        return UserMapper.toUserDto(userU);
     }
 
+    @Transactional
     @Override
     public void delete(Long userId) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        userRepository.delete(userId);
+       final User userD = getUserById(userId);
+        userRepository.deleteById(userId);
     }
 
-
-    public void validateEmail(UserDto userDto) {
-        if (userRepository.findAll()
-                .stream()
-                .anyMatch(userO -> userO.getEmail().equals(userDto.getEmail()))) {
-            throw new ConflictException("Пользователь с email = " + userDto.getEmail() +  "уже есть в базе");
-        }
-    }
 }

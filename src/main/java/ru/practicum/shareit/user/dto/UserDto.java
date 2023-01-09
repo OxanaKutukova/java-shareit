@@ -24,5 +24,6 @@ public class UserDto {
     private String name;
     @NotNull
     @Email
+    @NotBlank
     private String email;
 }
