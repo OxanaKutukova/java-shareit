@@ -68,7 +68,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BadRequestException("Данная вещь недоступна для бронирования");
         }
         //Проверим владельца вещи и того, кто бронирует
-        if (item.getOwner().getId() == userId) {
+        if (item.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Владельцу вещи не доступно бронирование у самого себя");
         }
         booking.setBooker(user);
@@ -88,7 +88,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BadRequestException("Параметр подтверждения бронирования должен иметь значение либо true, либо false");
         }
         //Проверим кто подтверждает бронирование
-        if (booking.getItem().getOwner().getId() != userId) {
+        if (!booking.getItem().getOwner().getId().equals(userId)) {
             throw new NotFoundException("Подтвердить бронирование может только владелец вещи");
         }
         //Проверим подтверждено ли бронирование
@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
         //Проверим бронирование
         final Booking booking = getBookingById(bookingId);
 
-        if (booking.getBooker().getId() != userId && booking.getItem().getOwner().getId() != userId) {
+        if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().getId().equals(userId)) {
             throw new NotFoundException("Запросить информацию о бронировании может либо владелец вещи либо автор бронирования");
         }
 
