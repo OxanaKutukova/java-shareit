@@ -38,32 +38,24 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
-    private User getUserById(Long userId) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        return user;
-    }
-
-    private Item getItemById(Long itemId) {
-        final Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
-
-        return item;
-    }
-
     @Override
     public List<ItemInfoDto> getByOwnerId(Long userId) {
-        final User user = getUserById(userId);
+        throwIfNotExistUser(userId);
         final List<Item> items = itemRepository.findByOwnerId(userId);
         final List<ItemInfoDto> res = new ArrayList<>();
         for (Item item: items) {
             BookingForItemInfoDto lastBookingInfoDto = null;
             BookingForItemInfoDto nextBookingInfoDto = null;
-            final Booking lastBooking = bookingRepository.findFirstByItem_Owner_IdAndItemIdAndEndIsBefore(userId,
-                    item.getId(), LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end"));
-            final Booking nextBooking = bookingRepository.findFirstByItem_Owner_IdAndItemIdAndStartIsAfter(userId,
-                    item.getId(), LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
+            final Booking lastBooking = bookingRepository
+                    .findFirstByItem_Owner_IdAndItemIdAndEndIsBefore(userId,
+                                                                     item.getId(),
+                                                                     LocalDateTime.now(),
+                                                                     Sort.by(Sort.Direction.DESC, "end"));
+            final Booking nextBooking = bookingRepository
+                    .findFirstByItem_Owner_IdAndItemIdAndStartIsAfter(userId,
+                                                                      item.getId(),
+                                                                      LocalDateTime.now(),
+                                                                      Sort.by(Sort.Direction.DESC, "start"));
             if (lastBooking != null) {
                 lastBookingInfoDto = BookingMapper.toBookingForItemInfo(lastBooking);
             }
@@ -71,7 +63,8 @@ public class ItemServiceImpl implements ItemService {
                 nextBookingInfoDto = BookingMapper.toBookingForItemInfo(nextBooking);
             }
             final ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
-            List<Comment> comments = commentRepository.findAllByItem_Id(item.getId(), Sort.by(Sort.Direction.ASC, "created"));
+            List<Comment> comments = commentRepository.findAllByItem_Id(item.getId(),
+                                                                        Sort.by(Sort.Direction.ASC, "created"));
 
             if (!comments.isEmpty()) {
                 itemInfoDto.setComments(comments
@@ -90,10 +83,16 @@ public class ItemServiceImpl implements ItemService {
         final Item item = getItemById(itemId);
         BookingForItemInfoDto lastBookingInfoDto = null;
         BookingForItemInfoDto nextBookingInfoDto = null;
-        final Booking lastBooking = bookingRepository.findFirstByItem_Owner_IdAndItemIdAndEndIsBefore(userId,
-                itemId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end"));
-        final Booking nextBooking = bookingRepository.findFirstByItem_Owner_IdAndItemIdAndStartIsAfter(userId,
-                itemId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
+        final Booking lastBooking = bookingRepository
+                .findFirstByItem_Owner_IdAndItemIdAndEndIsBefore(userId,
+                                                                 itemId,
+                                                                 LocalDateTime.now(),
+                                                                 Sort.by(Sort.Direction.DESC, "end"));
+        final Booking nextBooking = bookingRepository
+                .findFirstByItem_Owner_IdAndItemIdAndStartIsAfter(userId,
+                                                                  itemId,
+                                                                  LocalDateTime.now(),
+                                                                  Sort.by(Sort.Direction.DESC, "start"));
         if (lastBooking != null) {
             lastBookingInfoDto = BookingMapper.toBookingForItemInfo(lastBooking);
         }
@@ -102,7 +101,8 @@ public class ItemServiceImpl implements ItemService {
         }
         final ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
 
-        List<Comment> comments = commentRepository.findAllByItem_Id(itemId, Sort.by(Sort.Direction.ASC, "created"));
+        List<Comment> comments = commentRepository.findAllByItem_Id(itemId,
+                                                                    Sort.by(Sort.Direction.ASC, "created"));
 
         if (!comments.isEmpty()) {
             itemInfoDto.setComments(comments
@@ -156,7 +156,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public void delete(Long itemId) {
-        final Item item = getItemById(itemId);
+        throwIfNotExistItem(itemId);
         itemRepository.deleteById(itemId);
     }
 
@@ -181,7 +181,11 @@ public class ItemServiceImpl implements ItemService {
         final Item item = getItemById(itemId);
 
         //Проверим что пользователь брал вещь в аренду
-        List<Booking> bookings = bookingRepository.findAllByBooker_Id_AndItem_Id_AndEndIsBefore(userId, itemId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "start"));
+        List<Booking> bookings = bookingRepository
+                .findAllByBooker_Id_AndItem_Id_AndEndIsBefore(userId,
+                                                              itemId,
+                                                              LocalDateTime.now(),
+                                                              Sort.by(Sort.Direction.DESC, "start"));
         if (bookings.isEmpty()) {
             throw new BadRequestException("Только по бронированной вещи можно добавить комментарий");
         } else {
@@ -191,4 +195,23 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+    }
+
+    private void throwIfNotExistUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+    }
+
+    private Item getItemById(Long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+    }
+
+    private void throwIfNotExistItem(Long itemId) {
+        itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+    }
 }

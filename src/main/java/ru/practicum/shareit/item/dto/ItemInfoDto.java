@@ -15,13 +15,19 @@ import java.util.List;
 @EqualsAndHashCode (of = "id")
 public class ItemInfoDto {
     private Long id;
+
     @NotBlank
     private String name;
+
     @NotBlank
     private String description;
+
     @NotNull
     private Boolean available;
+
     private BookingForItemInfoDto lastBooking;
+
     private BookingForItemInfoDto nextBooking;
+
     private List<CommentDto> comments;
 }

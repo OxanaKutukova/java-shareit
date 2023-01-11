@@ -30,27 +30,6 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
-    private User getUserById(Long userId) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        return user;
-    }
-
-    private Item getItemById(Long itemId) {
-        final Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
-
-        return item;
-    }
-
-    private Booking getBookingById(Long bookingId) {
-        final Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование с id=" + bookingId + " не найдено"));
-
-        return booking;
-    }
-
     @Transactional
     @Override
     public BookingDto create(Long userId, BookingInDto bookingInDto) {
@@ -120,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getAllByBooker(Long userId, String state) {
         //Проверим пользователя
-        final User user = getUserById(userId);
+        throwIfNotExistUser(userId);
         try {
             BookingState bookingState = BookingState.valueOf(state);
             switch (bookingState) {
@@ -165,7 +144,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getAllByOwner(Long userId, String state) {
         //Проверим пользователя
-        final User user = getUserById(userId);
+        throwIfNotExistUser(userId);
         try {
             BookingState bookingState = BookingState.valueOf(state);
             switch (bookingState) {
@@ -206,4 +185,31 @@ public class BookingServiceImpl implements BookingService {
             throw new BadRequestException("Unknown state: " + state);
         }
     }
+
+    private User getUserById(Long userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        return user;
+    }
+
+    private void throwIfNotExistUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+    }
+
+    private Item getItemById(Long itemId) {
+        final Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+
+        return item;
+    }
+
+    private Booking getBookingById(Long bookingId) {
+        final Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Бронирование с id=" + bookingId + " не найдено"));
+
+        return booking;
+    }
+
 }

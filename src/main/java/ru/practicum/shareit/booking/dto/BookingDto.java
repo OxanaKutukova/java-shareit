@@ -21,13 +21,18 @@ import java.time.LocalDateTime;
 
 public class BookingDto {
     long id;
+
     @NotNull(message = "Время начала бронирования не может быть пустым")
     LocalDateTime start;
+
     @NotNull(message = "Время окончания бронирования не может быть пустым")
     LocalDateTime end;
+
     @NotNull
     Item item;
+
     @NotNull
     User booker;
+
     BookingState status;
 }

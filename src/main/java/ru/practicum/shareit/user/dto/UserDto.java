@@ -19,9 +19,11 @@ import javax.validation.constraints.NotNull;
 
 public class UserDto {
     private Long id;
+
     @NotBlank
     @NotNull
     private String name;
+
     @NotNull
     @Email
     @NotBlank

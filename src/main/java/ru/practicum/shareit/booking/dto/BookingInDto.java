@@ -15,11 +15,14 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode (of = "id")
 public class BookingInDto {
     private Long id;
+
     @NotNull(message = "Время начала бронирования не может быть пустым")
     @FutureOrPresent
     private LocalDateTime start;
+
     @NotNull(message = "Время окончания бронирования не может быть пустым")
     @FutureOrPresent
     private LocalDateTime end;
+
     private Long itemId;
 }

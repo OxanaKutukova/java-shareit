@@ -20,12 +20,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private final UserRepository userRepository;
 
-    private User getUserById(Long userId) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-        return user;
-    }
-
     @Override
     public List<UserDto> getAll() {
         return userRepository.findAll()
@@ -69,8 +63,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void delete(Long userId) {
-       final User userD = getUserById(userId);
+        throwIfNotExistUser(userId);
         userRepository.deleteById(userId);
     }
 
+    private User getUserById(Long userId) {
+        return  userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+    }
+
+    private void throwIfNotExistUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+    }
 }

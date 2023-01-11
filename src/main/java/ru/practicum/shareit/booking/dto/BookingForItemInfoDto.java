@@ -11,5 +11,6 @@ import lombok.*;
 @EqualsAndHashCode (of = "id")
 public class BookingForItemInfoDto {
     private Long id;
+
     private Long bookerId;
 }
