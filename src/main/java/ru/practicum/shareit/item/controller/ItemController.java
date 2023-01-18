@@ -3,13 +3,17 @@ package ru.practicum.shareit.item.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.service.ItemService;
-
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -17,8 +21,10 @@ import java.util.List;
  */
 @AllArgsConstructor
 @RestController
-@RequestMapping("/items")
+@Validated
 @Slf4j
+@RequestMapping("/items")
+
 public class ItemController {
 
     @Autowired
@@ -26,9 +32,12 @@ public class ItemController {
 
     //Получить список всех вещей пользователя
     @GetMapping
-    public List<ItemInfoDto> getByOwnerId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemInfoDto> getByOwnerId(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                          @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                          @Positive @RequestParam(name = "size", defaultValue = "25") Integer size) {
         log.info("getAllItems (GET /items/): Получить список всех вещей пользователя: {}", userId);
-        List<ItemInfoDto> allItems = itemService.getByOwnerId(userId);
+        final Pageable pageable = PageRequest.of(from / size, size);
+        List<ItemInfoDto> allItems = itemService.getByOwnerId(userId, pageable);
         log.info("getAllItems (GET /items/): Результат = {}", allItems);
 
         return allItems;
@@ -77,9 +86,12 @@ public class ItemController {
 
     //Поиск вещи потенциальным арендатором.
     @GetMapping("/search")
-    public List<ItemDto> getByNameByDirector(@RequestParam(required = false) String text) {
+    public List<ItemDto> getByNameByDirector(@RequestParam(required = false) String text,
+                                             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                             @Positive @RequestParam(name = "size", defaultValue = "25") Integer size) {
         log.info("getByNameByDirector (GET /items/search?text={}): Поиск вещи потенциальным арендатором", text);
-        List<ItemDto> allItems = itemService.getByNameByDirector(text);
+        final Pageable pageable = PageRequest.of(from / size, size);
+        List<ItemDto> allItems = itemService.getByNameByDirector(text, pageable);
         log.info("getByNameByDirector (GET /items/search?text={}): Результат = {}", text, allItems);
 
         return allItems;

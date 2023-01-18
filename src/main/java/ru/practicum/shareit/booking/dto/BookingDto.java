@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode (of = "id")
 
 public class BookingDto {
-    long id;
+    Long id;
 
     @NotNull(message = "Время начала бронирования не может быть пустым")
     LocalDateTime start;

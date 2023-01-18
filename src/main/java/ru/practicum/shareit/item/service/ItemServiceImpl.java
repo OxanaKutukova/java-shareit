@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -37,11 +39,12 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
-    public List<ItemInfoDto> getByOwnerId(Long userId) {
+    public List<ItemInfoDto> getByOwnerId(Long userId, Pageable pageable) {
         throwIfNotExistUser(userId);
-        final List<Item> items = itemRepository.findByOwnerId(userId);
+        final List<Item> items = itemRepository.findByOwnerId(userId, pageable);
         final List<ItemInfoDto> res = new ArrayList<>();
         for (Item item: items) {
             BookingForItemInfoDto lastBookingInfoDto = null;
@@ -80,6 +83,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemInfoDto getById(Long userId, Long itemId) {
+        throwIfNotExistUser(userId);
         final Item item = getItemById(itemId);
         BookingForItemInfoDto lastBookingInfoDto = null;
         BookingForItemInfoDto nextBookingInfoDto = null;
@@ -121,7 +125,14 @@ public class ItemServiceImpl implements ItemService {
         //Проверим пользователя
         final User user = getUserById(userId);
         final Item item = ItemMapper.toItem(itemDto, user);
+        final Long requestId = itemDto.getRequestId();
+
+        if (requestId != null) {
+            item.setItemRequest(itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new NotFoundException("Неверный идентификатор запроса")));
+        }
         final Item itemS = itemRepository.save(item);
+
         return ItemMapper.toItemDto(itemS);
     }
 
@@ -148,9 +159,9 @@ public class ItemServiceImpl implements ItemService {
             itemU.setAvailable(item.getAvailable());
         }
         itemU.setOwner(user);
-        itemRepository.save(itemU);
+        final Item itemSaved = itemRepository.save(itemU);
 
-        return ItemMapper.toItemDto(itemU);
+        return ItemMapper.toItemDto(itemSaved);
     }
 
     @Transactional
@@ -161,9 +172,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getByNameByDirector(String text) {
+    public List<ItemDto> getByNameByDirector(String text, Pageable pageable) {
         if (!text.isBlank()) {
-            return itemRepository.search(text)
+            return itemRepository.search(text, pageable)
                     .stream()
                     .filter(Item::getAvailable)
                     .map(ItemMapper::toItemDto)
@@ -189,8 +200,8 @@ public class ItemServiceImpl implements ItemService {
         if (bookings.isEmpty()) {
             throw new BadRequestException("Только по бронированной вещи можно добавить комментарий");
         } else {
-            final Comment comment = CommentMapper.toComment(commentDto, user, item);
-            commentRepository.save(comment);
+            final Comment comment = commentRepository.save(CommentMapper.toComment(commentDto, user, item));
+
             return CommentMapper.toCommentDto(comment);
         }
     }
@@ -207,11 +218,11 @@ public class ItemServiceImpl implements ItemService {
 
     private Item getItemById(Long itemId) {
         return itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
     }
 
     private void throwIfNotExistItem(Long itemId) {
         itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найдена"));
     }
 }

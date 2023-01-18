@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.model.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -55,9 +55,9 @@ public class UserServiceImpl implements UserService {
         if (user.getEmail() != null) {
             userU.setEmail(user.getEmail());
         }
-        userRepository.save(userU);
+        final User userSaved = userRepository.save(userU);
 
-        return UserMapper.toUserDto(userU);
+        return UserMapper.toUserDto(userSaved);
     }
 
     @Transactional

@@ -1,0 +1,16 @@
+[{
+  "id": 1,
+  "name": "Щётка для обуви",
+  "description": "Стандартная щётка для обуви",
+  "available": true,
+  "lastBooking": {
+            "id": 1,
+            "bookerId": 3
+  },
+  "nextBooking": {
+    "id": 2,
+    "bookerId": 25
+  },
+  "comments": []
+}
+]

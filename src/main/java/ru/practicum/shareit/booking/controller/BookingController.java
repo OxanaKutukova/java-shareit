@@ -3,11 +3,17 @@ package ru.practicum.shareit.booking.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingInDto;
 import ru.practicum.shareit.booking.service.BookingService;
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -15,8 +21,9 @@ import java.util.List;
  */
 @AllArgsConstructor
 @RestController
-@RequestMapping(path = "/bookings")
+@Validated
 @Slf4j
+@RequestMapping(path = "/bookings")
 public class BookingController {
 
     @Autowired
@@ -36,7 +43,7 @@ public class BookingController {
     //Подтверждение или отклонение запроса на бронирование
     @PatchMapping("/{bookingId}")
     public BookingDto approve(@RequestHeader("X-Sharer-User-Id") Long userId,
-                              @PathVariable long bookingId,
+                              @PathVariable Long bookingId,
                               @RequestParam Boolean approved) {
         log.info("approveBooking (PATCH /bookings/{}?approved={}): Запрос = {} для пользователя {} подтвердить {}",
                 bookingId, approved, bookingId, userId, approved);
@@ -60,10 +67,13 @@ public class BookingController {
     // Получение списка всех бронирований текущего пользователя
     @GetMapping
     public List<BookingDto> getAllByBooker(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                           @RequestParam(defaultValue = "ALL") String state) {
+                                           @RequestParam(defaultValue = "ALL") String state,
+                                           @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                           @Positive @RequestParam(name = "size", defaultValue = "25") Integer size) {
         log.info("getAllByBooker (GET /bookings?state={}): Получить список всех бронирований со статусом: {} " +
                 "текущего пользователя (входной параметр) = {}", state, state, userId);
-        List<BookingDto> allBookings = bookingService.getAllByBooker(userId, state);
+        final Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+        List<BookingDto> allBookings = bookingService.getAllByBooker(userId, state, pageable);
         log.info("getAllByBooker (GET /bookings?state={}): Результат = {}", state, allBookings);
 
         return allBookings;
@@ -72,10 +82,14 @@ public class BookingController {
     //Получение списка бронирований для всех вещей текущего пользователя
     @GetMapping("/owner")
     public List<BookingDto> getAllByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                          @RequestParam(defaultValue = "ALL") String state) {
+                                          @RequestParam(defaultValue = "ALL") String state,
+                                          @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                          @Positive @RequestParam(name = "size", defaultValue = "25") Integer size
+                                          ) {
         log.info("getAllByOwner (GET /bookings/owner?state={}): Получить список бронирований со статусом: {} " +
                 " для всех вещей текущего пользователя (входной параметр) = {}", state, state, userId);
-        List<BookingDto> allBookings = bookingService.getAllByOwner(userId, state);
+        final Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "start"));
+        List<BookingDto> allBookings = bookingService.getAllByOwner(userId, state, pageable);
         log.info("getAllByOwner (GET /bookings/owner?state={}): Результат = {}", state, allBookings);
 
         return allBookings;

@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.*;
 
+import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
@@ -21,5 +22,6 @@ public class CommentDto {
 
     private String authorName;
 
+    @FutureOrPresent
     private LocalDateTime created;
 }
