@@ -65,16 +65,8 @@ public class ItemServiceImpl implements ItemService {
             if (nextBooking != null) {
                 nextBookingInfoDto = BookingMapper.toBookingForItemInfo(nextBooking);
             }
-            final ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
-            List<Comment> comments = commentRepository.findAllByItem_Id(item.getId(),
-                                                                        Sort.by(Sort.Direction.ASC, "created"));
-
-            if (!comments.isEmpty()) {
-                itemInfoDto.setComments(comments
-                        .stream().map(CommentMapper::toCommentDto)
-                        .collect(Collectors.toList())
-                );
-            }
+            ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
+            itemInfoDto = setCommentsToItemInfoDto(itemInfoDto);
             res.add(itemInfoDto);
         }
 
@@ -103,17 +95,9 @@ public class ItemServiceImpl implements ItemService {
         if (nextBooking != null) {
             nextBookingInfoDto = BookingMapper.toBookingForItemInfo(nextBooking);
         }
-        final ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
+        ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
 
-        List<Comment> comments = commentRepository.findAllByItem_Id(itemId,
-                                                                    Sort.by(Sort.Direction.ASC, "created"));
-
-        if (!comments.isEmpty()) {
-            itemInfoDto.setComments(comments
-                    .stream().map(CommentMapper::toCommentDto)
-                    .collect(Collectors.toList())
-            );
-        }
+        itemInfoDto = setCommentsToItemInfoDto(itemInfoDto);
 
         return itemInfoDto;
     }
@@ -204,6 +188,20 @@ public class ItemServiceImpl implements ItemService {
 
             return CommentMapper.toCommentDto(comment);
         }
+    }
+
+    private ItemInfoDto setCommentsToItemInfoDto(ItemInfoDto itemInfoDto) {
+
+        List<Comment> comments = commentRepository.findAllByItem_Id(itemInfoDto.getId(),
+                Sort.by(Sort.Direction.ASC, "created"));
+
+        if (!comments.isEmpty()) {
+            itemInfoDto.setComments(comments
+                    .stream().map(CommentMapper::toCommentDto)
+                    .collect(Collectors.toList())
+            );
+        }
+        return itemInfoDto;
     }
 
     private User getUserById(Long userId) {

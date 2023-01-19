@@ -53,7 +53,7 @@ public class ItemRequestController {
     //Получить данные об одном конкретном запросе вместе с данными об ответах на него
     @GetMapping("/{requestId}")
     public ItemRequestInfoDto getById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                               @PathVariable Long requestId) {
+                                      @PathVariable Long requestId) {
         log.info("getItemRequestById (GET /requests/{}): Получить запрос на вещь по id(входной параметр) = {}",
                 requestId, requestId);
         ItemRequestInfoDto itemRequestInfoDto = itemRequestService.getById(userId, requestId);
@@ -64,9 +64,11 @@ public class ItemRequestController {
 
     //Получить список запросов, созданных другими пользователями
     @GetMapping("/all")
-    public List<ItemRequestInfoDto> getAllWithPage(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                             @Positive @RequestParam(name = "size", defaultValue = "25") Integer size) {
+    public List<ItemRequestInfoDto> getAllWithPage(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+            @Positive @RequestParam(name = "size", defaultValue = "25") Integer size) {
+
         log.info("getAllWithPage (GET /requests/all?from={}&size={}): Поиск вещи потенциальным арендатором", from, size);
         final Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "created"));
         List<ItemRequestInfoDto> allItemRequestsInfoDto = itemRequestService.getAllWithPage(userId, pageable);
