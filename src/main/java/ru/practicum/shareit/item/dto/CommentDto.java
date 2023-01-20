@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request.dto;
+package ru.practicum.shareit.item.dto;
 
 import lombok.*;
 
@@ -6,9 +6,6 @@ import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -16,11 +13,14 @@ import java.time.LocalDateTime;
 @Builder
 @ToString
 @EqualsAndHashCode (of = "id")
-public class ItemRequestDto {
+
+public class CommentDto {
     private Long id;
 
     @NotBlank
-    private String description;
+    private String text;
+
+    private String authorName;
 
     @FutureOrPresent
     private LocalDateTime created;

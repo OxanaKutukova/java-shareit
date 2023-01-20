@@ -1,14 +1,12 @@
 package ru.practicum.shareit.request.dto;
 
 import lombok.*;
+import ru.practicum.shareit.item.dto.ItemDto;
 
-import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.List;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -16,12 +14,13 @@ import java.time.LocalDateTime;
 @Builder
 @ToString
 @EqualsAndHashCode (of = "id")
-public class ItemRequestDto {
+public class ItemRequestInfoDto {
     private Long id;
 
     @NotBlank
     private String description;
 
-    @FutureOrPresent
     private LocalDateTime created;
+
+    private List<ItemDto> items;
 }
