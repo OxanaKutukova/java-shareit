@@ -68,7 +68,8 @@ class ItemRepositoryTest {
 
     @Test
     void findByOwnerId() {
-        final List<Item> result = itemRepository.findByOwnerId(owner1.getId(), Pageable.unpaged());
+        final List<Item> result = itemRepository.findByOwnerId(owner1.getId(),
+                Pageable.unpaged());
 
         Assertions.assertNotNull(result);
         assertEquals(1, result.size());

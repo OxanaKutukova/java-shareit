@@ -45,17 +45,7 @@ class ItemRequestRepositoryTest {
     void beforeEach() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime dateTime = LocalDateTime.parse("2023-03-01 10:15:30", formatter);
-/*        owner1 = userRepository.save(new User(1L, "Oksi", "oksi.dto@ya.ru"));
-        item1 = itemRepository.save(new Item(1L, "Щётка для обуви",
-                "Стандартная щётка для обуви", true, owner1, null));
-        owner2 = userRepository.save(new User(2L, "Max", "maxi.dto@ya.ru"));
-        item2 = itemRepository.save(new Item(2L, "Робот-щётка для обуви",
-                "Программируемый робот", true, owner2, null));
-        itemRequest1 = itemRequestRepository.save(new ItemRequest(1L,
-                "Нужна щетка для обуви", owner2, dateTime));
-        itemRequest2 = itemRequestRepository.save(new ItemRequest(2L,
-                "Очень нужен робот чистить обувь", owner1, dateTime));
-*/
+
         owner1 = userRepository.save(
                 User
                         .builder()

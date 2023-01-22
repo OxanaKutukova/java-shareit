@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -87,7 +88,7 @@ public class ItemController {
                                              @RequestParam(name = "from", defaultValue = "0") Integer from,
                                              @RequestParam(name = "size", defaultValue = "25") Integer size) {
         log.info("Server: Поиск вещи потенциальным арендатором");
-        final Pageable pageable = PageRequest.of(from / size, size);
+        final Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         List<ItemDto> allItems = itemService.getByNameByDirector(text, pageable);
         log.info("Server: Результат поиска вещи (параметр поиска - {}) потенциальным арендатором: {}", text, allItems);
 
