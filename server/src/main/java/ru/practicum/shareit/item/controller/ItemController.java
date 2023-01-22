@@ -34,7 +34,7 @@ public class ItemController {
                                           @RequestParam(name = "from", defaultValue = "0") Integer from,
                                           @RequestParam(name = "size", defaultValue = "25") Integer size) {
         log.info("Server: Получить список всех вещей пользователя с id = {}", userId);
-        final Pageable pageable = PageRequest.of(from / size, size);
+        final Pageable pageable = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         List<ItemInfoDto> allItems = itemService.getByOwnerId(userId, pageable);
         log.info("Server: Получен список всех вещей пользователя с id = {}. Результат = {}", userId, allItems);
 
