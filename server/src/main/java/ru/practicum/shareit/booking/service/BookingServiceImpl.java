@@ -181,10 +181,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private User getUserById(Long userId) {
-        final User user = userRepository.findById(userId)
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-
-        return user;
     }
 
     private void throwIfNotExistUser(Long userId) {
@@ -193,17 +191,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Item getItemById(Long itemId) {
-        final Item item = itemRepository.findById(itemId)
+        return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с id=" + itemId + " не найден"));
-
-        return item;
     }
 
     private Booking getBookingById(Long bookingId) {
-        final Booking booking = bookingRepository.findById(bookingId)
+        return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с id=" + bookingId + " не найдено"));
-
-        return booking;
     }
 
 }

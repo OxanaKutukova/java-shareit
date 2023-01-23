@@ -66,7 +66,7 @@ public class ItemServiceImpl implements ItemService {
                 nextBookingInfoDto = BookingMapper.toBookingForItemInfo(nextBooking);
             }
             ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
-            itemInfoDto = setCommentsToItemInfoDto(itemInfoDto);
+            setCommentsToItemInfoDto(itemInfoDto);
             res.add(itemInfoDto);
         }
 
@@ -97,7 +97,7 @@ public class ItemServiceImpl implements ItemService {
         }
         ItemInfoDto itemInfoDto = ItemMapper.toItemInfoDto(item, lastBookingInfoDto, nextBookingInfoDto);
 
-        itemInfoDto = setCommentsToItemInfoDto(itemInfoDto);
+        setCommentsToItemInfoDto(itemInfoDto);
 
         return itemInfoDto;
     }
@@ -190,7 +190,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private ItemInfoDto setCommentsToItemInfoDto(ItemInfoDto itemInfoDto) {
+    private void setCommentsToItemInfoDto(ItemInfoDto itemInfoDto) {
 
         List<Comment> comments = commentRepository.findAllByItem_Id(itemInfoDto.getId(),
                 Sort.by(Sort.Direction.ASC, "created"));
@@ -201,7 +201,6 @@ public class ItemServiceImpl implements ItemService {
                     .collect(Collectors.toList())
             );
         }
-        return itemInfoDto;
     }
 
     private User getUserById(Long userId) {
